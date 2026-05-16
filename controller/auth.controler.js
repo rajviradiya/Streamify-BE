@@ -33,13 +33,23 @@ const SignupController = async (req,res)=>{
 
         const profileAvtar = `https://i.pravatar.cc/150?img=${idx}`;
 
-        const newUser = new User({
+        const newUser = await User.create({
             fullname:fullName,
             email:email,
             password:password,
-            profileAvatar:profileAvtar
+            profilePic:profileAvtar
         })
 
+        const tocken = jwt.sign({userId:newUser._id}, process.env.JWT_SECRET, {expiresIn:"1d"});
+
+        res.cookie("jwttoken",tocken,{
+            maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // Set secure flag in production
+            sameSite: "strict" // Adjust sameSite attribute as needed
+        })
+        
+        res.status(201).json({success: true, message:"User created successfully", user:newUser, token:tocken})
     }catch(err){
         console.error("Error in SignupController:", err);
         res.status(500).json({success:false, message:"Internal Server Error"});

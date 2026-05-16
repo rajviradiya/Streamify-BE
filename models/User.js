@@ -45,20 +45,23 @@ const UserSchema = new mongoose.Schema({
     ]
 },{timestamps:true})
 
+// Pre hook -> Use to store hash password -> passwordencription
+
+UserSchema.pre("save", async function () {
+  try {
+    if (!this.isModified("password")) {
+      return;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+
+  } catch (error) {
+    console.log(error);
+    return;
+  }
+});
 
 const User = mongoose.model("User",UserSchema)
 
-// Pre hook -> Use to store hash password -> passwordencription
-
-UserSchema.pre("save", async ()=>{
-    if(!this.isModified("password")) return next();
-
-    try{
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
-        next();
-    }catch(err){
-        next(err)
-    }
-})
 module.exports = User;

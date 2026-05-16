@@ -24,5 +24,6 @@ app.use("/api/auth",authROutes);
 
 app.listen(PORT,()=>{
     console.log("sever is running on port :",PORT);
+    console.log(`Url : http://localhost:${PORT}`);
     mongoDbConnection()
 });
