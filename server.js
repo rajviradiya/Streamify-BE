@@ -10,6 +10,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT;
 
+// For get request body data in json formate otherwise it will be undefine 
+app.use(express.json());
+
 app.get("/",(req,res)=>{
     res.send("This Is Chat Api ..")
     console.log("This Is Chat Api ..");
