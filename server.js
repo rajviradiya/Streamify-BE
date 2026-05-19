@@ -1,16 +1,18 @@
 const express = require('express');
 const dotenv = require('dotenv');
-
+const cookieParser = require("cookie-parser");
 const authROutes = require("./routes/auth.route");
 const mongoDbConnection = require("./lib/mongo_db_connection");
 
 // env configure
 dotenv.config();
+    
 
 const app = express();
 const PORT = process.env.PORT;
 
 // For get request body data in json formate otherwise it will be undefine 
+app.use(cookieParser());
 app.use(express.json());
 
 app.get("/",(req,res)=>{
