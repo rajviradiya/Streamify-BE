@@ -5,7 +5,7 @@ const SignupController = async (req,res)=>{
     const {email, password, fullName} = req.body;
 
     try{
-        // all fieldrequired validation
+        // all field required validation
         if(!email || !password || !fullName ) {
             return res.status(400).json({message: "All fields are required"});
         }
@@ -31,25 +31,26 @@ const SignupController = async (req,res)=>{
         //create new user
         const idx = Math.floor(Math.random() * 100) + 1; 
 
-        const profileAvtar = `https://i.pravatar.cc/150?img=${idx}`;
+        const profileAvatar = `https://i.pravatar.cc/150?img=${idx}`;
 
         const newUser = await User.create({
             fullname:fullName,
             email:email,
             password:password,
-            profilePic:profileAvtar
+            profilePic:profileAvatar
         })
 
-        const tocken = jwt.sign({userId:newUser._id}, process.env.JWT_SECRET, {expiresIn:"1d"});
+        // create JWT token
+        const token = jwt.sign({userId:newUser._id}, process.env.JWT_SECRET, {expiresIn:"1d"});
 
-        res.cookie("jwttoken",tocken,{
+        res.cookie("jwtToken",token,{
             maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", // Set secure flag in production
             sameSite: "strict" // Adjust sameSite attribute as needed
         })
         
-        res.status(201).json({success: true, message:"User created successfully", user:newUser, token:tocken})
+        res.status(201).json({success: true, message:"User created successfully", user:newUser, token:token})
     }catch(err){
         console.error("Error in SignupController:", err);
         res.status(500).json({success:false, message:"Internal Server Error"});
@@ -59,12 +60,44 @@ const SignupController = async (req,res)=>{
 };
 
 const LoginController  = async (req,res)=>{
-    res.send("Login Route");
+    try{
+        const {email, password} = req.body;
+
+        if(!email || !password){
+            return res.status(400).json({success:false, message:"Email and password are required"});
+        }
+
+        const user = await User.findOne({email:email});
+
+        if(!user){
+            return res.status(400).json({success:false, message:"Invalid email or password"});
+        }
+
+        const isPasswordMatch = await user.comparePassword(password);
+
+        if(!isPasswordMatch){
+            return res.status(400).json({success:false, message:"Invalid email or password"});
+        }
+
+        const token = jwt.sign({userId:user._id},process.env.JWT_SECRET,{expiresIn:"1d"});
+
+        res.cookie("jwtToken",token,{
+            maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // Set secure flag in production
+            sameSite: "strict" // Adjust sameSite attribute as needed
+        })
+
+        res.status(200).json({success:true, message:"Login successful", user:user, token:token})
+    }catch(err){
+        res.status(500).json({success:false, message:"Internal Server Error"});
+    }
     console.log("Login Route");
 };
 
 const LogoutController = async(req,res)=>{
-    res.send("Logout Route");
+    res.clearCookie("jwtToken");
+    res.status(200).json({success:true, message:"Logout successful"});
     console.log("Logout Route");
 };
 

@@ -45,7 +45,7 @@ const UserSchema = new mongoose.Schema({
     ]
 },{timestamps:true})
 
-// Pre hook -> Use to store hash password -> passwordencription
+// Pre hook -> Use to store hash password -> password encryption
 
 UserSchema.pre("save", async function () {
   try {
@@ -61,6 +61,15 @@ UserSchema.pre("save", async function () {
     return;
   }
 });
+
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+    try{
+        return await bcrypt.compare(candidatePassword, this.password);
+    }catch(err){
+        console.log(err);
+        throw err;
+    }
+}
 
 const User = mongoose.model("User",UserSchema)
 
